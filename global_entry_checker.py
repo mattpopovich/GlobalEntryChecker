@@ -27,6 +27,7 @@ def check_timestamp(url):
         for slot in available_slots:
 
             start_timestamp_str = slot["startTimestamp"]
+            time_slot_found = datetime.now()
 
             if not start_timestamp_str:
                 print(f"{datetime.now()}: ERROR: 'startTimestamp' field not found in JSON response.")
@@ -37,14 +38,18 @@ def check_timestamp(url):
             # Check if the timestamp is before March 2024
             if start_timestamp < datetime(2024, 3, 1):
                 print(f"{datetime.now()} - Global Entry opening on " + start_timestamp_str)
-                # requests.post("https://ntfy.sh/ge-den",
-                #         data="Found appointment with date: " + start_timestamp_str,
-                #         headers={
-                #             "Title": "Global Entry Opening!",
-                #             "Priority": "default",
-                #             "Tags": "earth_americas,passport_control,airplane"
-                #         },
-                #         timeout=15)
+
+                previous_start_timestamp_str = start_timestamp_str
+
+                requests.post("https://ntfy.sh/ge-den",
+                        data="Found appointment with date: " + start_timestamp_str,
+                        headers={
+                            "Title": "Global Entry Opening!",
+                            "Priority": "default",
+                            "Tags": "earth_americas,passport_control,airplane"
+                        },
+                        timeout=15)
+                # TODO: Catch this timeout
             else:
                 print(f"{datetime.now()}")
 
