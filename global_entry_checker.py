@@ -85,7 +85,7 @@ def check_timestamp(location: str, locations: dict, locations_to_alert: dict, dh
                 locations[location]["datetime_last_notification"] = datetime.utcnow()
 
             # If the appointment is the same as the last one we were tracking
-            if start_timestamp == locations[location]["previous_timestamp"]:
+            elif start_timestamp == locations[location]["previous_timestamp"]:
                 print(f"{datetime.utcnow()}: Found slot in {location} for {start_timestamp_str}, it is same as previous appointment")
                 if (datetime.utcnow() - locations[location]["datetime_last_notification"]).seconds > 200:
                     # Every 2min, send a reminder that the appointment is still open
@@ -104,7 +104,7 @@ def check_timestamp(location: str, locations: dict, locations_to_alert: dict, dh
                     locations[location]["datetime_last_notification"] = datetime.utcnow()
 
             # If the appointment is worse than the last one we were tracking
-            if start_timestamp > locations[location]["previous_timestamp"]:
+            elif start_timestamp > locations[location]["previous_timestamp"]:
                 print(f"{datetime.utcnow()}: Found slot in {location} for {start_timestamp_str}, it is worse than previous appointment")
                 if location in locations_to_alert:
                     requests.post(f"https://ntfy.sh/GE-{location}",
