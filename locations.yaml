@@ -1,0 +1,25 @@
+# GOES Center codes: https://github.com/Drewster727/goes-notify#goes-center-codes
+IAD:
+    locationId: 5142
+    address: "1 Saarinen Circle, Sterling, VA 20166"
+DC:
+    locationId: 8120
+    address: "1300 Pennsylvania Avenue NW, Washington, DC 20229"
+DEN:
+    locationId: 6940
+    address: "8400 Pena Blvd, Denver, CO 80249"
+BWI:
+    locationId: 7940
+    address: "Baltimore/Washington International Thurgood Marshall Airport, Linthicum, MD 21240"
+NYC:
+    locationId: 6480
+    address: "1 Bowling Green, New York, NY 10004"
+
+JFK:
+    locationId: 5140
+    address: "New York John F. Kennedy International Airport, Jamaica, NY 11430"
+
+HNL:
+    locationId: 5340
+    address: "300 Rodgers Blvd, Honolulu, HI 96819"
+
