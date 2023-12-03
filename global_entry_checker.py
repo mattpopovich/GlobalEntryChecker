@@ -1,6 +1,6 @@
 """
 Date:   November 14, 2023
-Author: Matt Popovich (popovich.matt@gmail.com)
+Author: Matt Popovich (https://mattpopovich.com/)
 About:  Checks the locations.yaml file for open Global Entry interview openings
         Will send alerts via ntfy.sh for the desired `locations_to_alert`
 
