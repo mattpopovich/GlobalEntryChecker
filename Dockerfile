@@ -7,12 +7,6 @@ FROM mcr.microsoft.com/vscode/devcontainers/python:0-${VARIANT}
 # Make HTTP requests for API information
 RUN pip install --upgrade requests
 
-# Plot.ly interactive web app
-RUN pip install --upgrade dash
-
-# Python "database" library
-RUN pip install --upgrade pandas
-
 # Parse .yaml files
 RUN pip install --upgrade pyyaml
 
