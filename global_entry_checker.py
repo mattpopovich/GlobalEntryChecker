@@ -1,3 +1,12 @@
+"""
+Date:   November 14, 2023
+Author: Matt Popovich (popovich.matt@gmail.com)
+About:  Checks the locations.yaml file for open Global Entry interview openings
+        Will send alerts via ntfy.sh for the desired `locations_to_alert`
+
+Ex. python3 global_entry_checker.py
+"""
+
 import requests
 import json
 from datetime import datetime
@@ -14,13 +23,7 @@ def check_timestamp(location: str, locations: dict, locations_to_alert: dict, dh
 
     # Make a GET request to the specified URL
     url = dhs_availability_url + str(locations[location]["locationId"])
-    try:
-        response = requests.get(url)
-    except Exception as e:
-        print(f"Exception occurred while trying to get {location}: {e}")
-        print(f"Status code: {response.status_code}")
-        print(f"Aborting this location and trying the next one...")
-        return
+    response = requests.get(url)
 
     # Check if the request was successful (status code 200)
     if response.status_code != 200:
@@ -123,7 +126,7 @@ def check_timestamp(location: str, locations: dict, locations_to_alert: dict, dh
             print(f"{datetime.utcnow()}: Found slot in {location} for {start_timestamp_str}, but it is > 90 days away")
 
 ### Constants
-locations_to_alert = ["IAD", "DC", "NYC"]
+locations_to_alert = ["IAD", "DC"]
 period_s: Final[int] = 15
 dhs_availability_url: Final[str] = "https://ttp.cbp.dhs.gov/schedulerapi/slot-availability?locationId="
 locations_file: Final[str] = "locations.yaml"
@@ -135,6 +138,10 @@ sleep_between_calls_s: Final[float] = period_s / len(locations)
 # Run the script in a loop with a delay between iterations
 while True:
     for location in locations:
-        check_timestamp(location, locations, locations_to_alert, dhs_availability_url)
+        try:
+            check_timestamp(location, locations, locations_to_alert, dhs_availability_url)
+        except Exception as e:
+            print(f"Exception occurred while trying to get {location}: {e}")
+            print(f"Aborting this location and trying the next one...")
         # print(locations)
         time.sleep(sleep_between_calls_s)
