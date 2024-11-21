@@ -13,8 +13,13 @@ from datetime import datetime
 import time
 import yaml                     # Parse .yaml file
 from typing import Final        # Extra typing imports
+from GlobalEntryNotifier import GlobalEntryNotifier
 
-def check_timestamp(location: str, locations: dict, locations_to_alert: dict, dhs_availability_url: str):
+def check_timestamp(global_entry_notifier: GlobalEntryNotifier,
+                    location: str,
+                    locations: dict,
+                    locations_to_alert: dict,
+                    dhs_availability_url: str):
 
     # Populate with empty values if they weren't already created
     default_previous_timestamp = datetime(2030, 1, 1)
@@ -42,15 +47,8 @@ def check_timestamp(location: str, locations: dict, locations_to_alert: dict, dh
         print(f"{datetime.utcnow()}: No slots available for {location}")
         if locations[location]["datetime_last_notification"]:
             if location in locations_to_alert:
-                requests.post(f"https://ntfy.sh/GE-{location}",
-                        data=f"Previous appointment at {location} is no longer available :(",
-                        headers={
-                            "Title": "Global Entry Opening!",
-                            "Priority": "default",
-                            "Tags": "earth_americas,passport_control,airplane"
-                        },
-                        timeout=15)
-                # TODO: Catch this timeout
+                message = f"Previous appointment at {location} is no longer available :("
+                global_entry_notifier.send_global_entry_notification(location, message)
 
         locations[location]["previous_timestamp"] = default_previous_timestamp
         locations[location]["datetime_last_notification"] = None
@@ -74,15 +72,8 @@ def check_timestamp(location: str, locations: dict, locations_to_alert: dict, dh
                 print(f"{datetime.utcnow()}: Found slot in {location} for {start_timestamp_str}, it is new best!")
 
                 if location in locations_to_alert:
-                    requests.post(f"https://ntfy.sh/GE-{location}",
-                            data=f"Found new appointment at {location}: " + start_timestamp_str,
-                            headers={
-                                "Title": "Global Entry Opening!",
-                                "Priority": "default",
-                                "Tags": "earth_americas,passport_control,airplane"
-                            },
-                            timeout=15)
-                    # TODO: Catch this timeout
+                    message = f"Found new appointment at {location}: " + start_timestamp_str
+                    global_entry_notifier.send_global_entry_notification(location, message)
 
                 locations[location]["previous_timestamp"] = start_timestamp
                 locations[location]["datetime_last_notification"] = datetime.utcnow()
@@ -90,19 +81,12 @@ def check_timestamp(location: str, locations: dict, locations_to_alert: dict, dh
             # If the appointment is the same as the last one we were tracking
             elif start_timestamp == locations[location]["previous_timestamp"]:
                 print(f"{datetime.utcnow()}: Found slot in {location} for {start_timestamp_str}, it is same as previous appointment")
-                if (datetime.utcnow() - locations[location]["datetime_last_notification"]).seconds > 200:
-                    # Every 2min, send a reminder that the appointment is still open
+                if (datetime.utcnow() - locations[location]["datetime_last_notification"]).seconds > 500:
+                    # Every 8min, send a reminder that the appointment is still open
 
                     if location in locations_to_alert:
-                        requests.post(f"https://ntfy.sh/GE-{location}",
-                                data=f"Appointment at {location} is still open: {start_timestamp_str}",
-                                headers={
-                                    "Title": "Global Entry Opening!",
-                                    "Priority": "default",
-                                    "Tags": "earth_americas,passport_control,airplane"
-                                },
-                                timeout=15)
-                        # TODO: Catch this timeout
+                        message = f"Appointment at {location} is still open: {start_timestamp_str}"
+                        global_entry_notifier.send_global_entry_notification(location, message)
 
                     locations[location]["datetime_last_notification"] = datetime.utcnow()
 
@@ -110,15 +94,8 @@ def check_timestamp(location: str, locations: dict, locations_to_alert: dict, dh
             elif start_timestamp > locations[location]["previous_timestamp"]:
                 print(f"{datetime.utcnow()}: Found slot in {location} for {start_timestamp_str}, it is worse than previous appointment")
                 if location in locations_to_alert:
-                    requests.post(f"https://ntfy.sh/GE-{location}",
-                            data=f"Appointment at {location} closed, but now there is one at {start_timestamp_str}",
-                            headers={
-                                "Title": "Global Entry Opening!",
-                                "Priority": "default",
-                                "Tags": "earth_americas,passport_control,airplane"
-                            },
-                            timeout=15)
-                    # TODO: Catch this timeout
+                    message = f"Appointment at {location} closed, but now there is one at {start_timestamp_str}"
+                    global_entry_notifier.send_global_entry_notification(location, message)
 
                 locations[location]["previous_timestamp"] = start_timestamp
                 locations[location]["datetime_last_notification"] = datetime.utcnow()
@@ -126,12 +103,13 @@ def check_timestamp(location: str, locations: dict, locations_to_alert: dict, dh
             print(f"{datetime.utcnow()}: Found slot in {location} for {start_timestamp_str}, but it is > 90 days away")
 
 ### Constants
-locations_to_alert = ["IAD", "DC"]
+locations_to_alert = ["SEA"]
 period_s: Final[int] = 15
 dhs_availability_url: Final[str] = "https://ttp.cbp.dhs.gov/schedulerapi/slot-availability?locationId="
 locations_file: Final[str] = "locations.yaml"
 
 ### Variables
+global_entry_notifier = GlobalEntryNotifier()
 locations: dict = yaml.safe_load(open(locations_file))
 sleep_between_calls_s: Final[float] = period_s / len(locations)
 
@@ -139,7 +117,7 @@ sleep_between_calls_s: Final[float] = period_s / len(locations)
 while True:
     for location in locations:
         try:
-            check_timestamp(location, locations, locations_to_alert, dhs_availability_url)
+            check_timestamp(global_entry_notifier, location, locations, locations_to_alert, dhs_availability_url)
         except Exception as e:
             print(f"Exception occurred while trying to get {location}: {e}")
             print(f"Aborting this location and trying the next one...")
