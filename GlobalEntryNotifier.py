@@ -1,5 +1,6 @@
 import requests
 from datetime import datetime, timedelta
+from collections import defaultdict, deque
 
 class GlobalEntryNotifier:
     def __init__(self, base_url="https://ntfy.sh", timeout=15):
@@ -12,6 +13,11 @@ class GlobalEntryNotifier:
         self.base_url = base_url
         self.timeout = timeout
         self.notifications = []  # List to store timestamps of sent notifications
+
+        # How many times do we want to repeatedly notify the user
+        self.NUM_REPEAT_SENDS = 3
+         # Tracks last n messages per location
+        self.sent_messages = defaultdict(lambda: deque(maxlen=self.NUM_REPEAT_SENDS))
 
 
     def send_notification(self, url, data, headers, timeout):
@@ -46,6 +52,14 @@ class GlobalEntryNotifier:
         :param start_timestamp_str: The start timestamp of the appointment.
         :return: Response object from the POST request.
         """
+        # Check if this message has been sent 3 times already
+        messages = self.sent_messages[location]
+        if messages.count(message) >= self.NUM_REPEAT_SENDS:
+            print("Skipping notification, we have already sent it at least " +
+                  f"{self.NUM_REPEAT_SENDS} times: {message}")
+            return None
+
+        # Build the notification
         url = f"{self.base_url}/GE-{location}"
         data = f"{message}"
         headers = {
@@ -53,11 +67,20 @@ class GlobalEntryNotifier:
             "Priority": "default",
             "Tags": "earth_americas,passport_control,airplane"
         }
-        return self.send_notification(url, data, headers, self.timeout)
+
+        # Send the notification
+        response = self.send_notification(url, data, headers, self.timeout)
+
+        if response:
+            # Record the ssent message for the location
+            messages.append(message)
+
+        return response
 
     def _record_notification(self):
         """
-        Records a notification timestamp and logs the number of notifications sent in the last 24 hours.
+        Records a notification timestamp and logs the number of notifications
+            sent in the last 24 hours.
         """
         now = datetime.now()
 

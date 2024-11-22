@@ -81,8 +81,8 @@ def check_timestamp(global_entry_notifier: GlobalEntryNotifier,
             # If the appointment is the same as the last one we were tracking
             elif start_timestamp == locations[location]["previous_timestamp"]:
                 print(f"{datetime.utcnow()}: Found slot in {location} for {start_timestamp_str}, it is same as previous appointment")
-                if (datetime.utcnow() - locations[location]["datetime_last_notification"]).seconds > 500:
-                    # Every 8min, send a reminder that the appointment is still open
+                if (datetime.utcnow() - locations[location]["datetime_last_notification"]).seconds > 180:
+                    # Every 3min, send a reminder that the appointment is still open
 
                     if location in locations_to_alert:
                         message = f"Appointment at {location} is still open: {start_timestamp_str}"
