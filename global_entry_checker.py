@@ -103,7 +103,7 @@ def check_timestamp(global_entry_notifier: GlobalEntryNotifier,
             print(f"{datetime.utcnow()}: Found slot in {location} for {start_timestamp_str}, but it is > 90 days away")
 
 ### Constants
-locations_to_alert = ["SEA"]
+locations_to_alert = []
 period_s: Final[int] = 15
 dhs_availability_url: Final[str] = "https://ttp.cbp.dhs.gov/schedulerapi/slot-availability?locationId="
 locations_file: Final[str] = "locations.yaml"

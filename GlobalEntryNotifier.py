@@ -72,7 +72,7 @@ class GlobalEntryNotifier:
         response = self.send_notification(url, data, headers, self.timeout)
 
         if response:
-            # Record the ssent message for the location
+            # Record the sent message for the location
             messages.append(message)
 
         return response

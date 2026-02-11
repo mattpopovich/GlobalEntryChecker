@@ -7,6 +7,8 @@
 		"context": ".."
 	},
 
+	"runArgs": ["--name", "global_entry_checker"],
+
 	// Configure tool-specific properties.
 	"customizations": {
 		// Configure properties specific to VS Code.
